@@ -85,6 +85,7 @@ public class ProjectController {
             }
             
             p.getActivities().add(newActivity);
+            p.notifyObservers("Notifica attività aggiunta: " + title);
             dm.saveData();
         }
     }

@@ -67,6 +67,38 @@
                 <i class="fas fa-th-large mr-2"></i> Dashboard
             </a>
             
+            <div class="relative group">
+                <a href="#" class="block py-2.5 px-4 rounded transition hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+                    <span><i class="fas fa-bell mr-2"></i> Notifiche</span>
+                    <% if(user.getNotifications() != null && user.getNotifications().size() > 0) { %>
+                        <span class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse">
+                            <%= user.getNotifications().size() %>
+                        </span>
+                    <% } %>
+                </a>
+                
+                <div class="absolute left-full top-0 ml-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 hidden group-hover:block z-50 overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-100 font-bold text-xs text-gray-500 uppercase flex justify-between items-center">
+                        <span>Ultime Notifiche</span>
+                        <% if(user.getNotifications() != null && !user.getNotifications().isEmpty()) { %>
+                            <span class="text-[10px] bg-gray-200 px-1.5 rounded text-gray-600 cursor-pointer" title="Pulisci">Clear</span>
+                        <% } %>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto">
+                        <% if(user.getNotifications() == null || user.getNotifications().isEmpty()) { %>
+                            <div class="p-6 text-sm text-gray-400 text-center flex flex-col items-center">
+                                <i class="far fa-bell-slash mb-2 text-lg"></i>
+                                Nessuna nuova notifica.
+                            </div>
+                        <% } else { 
+                             for(String msg : user.getNotifications()) { %>
+                            <div class="p-3 border-b border-gray-50 text-xs text-gray-600 hover:bg-cyan-50 transition border-l-2 border-transparent hover:border-cyan-500">
+                                <%= msg %>
+                            </div>
+                        <% }} %>
+                    </div>
+                </div>
+            </div>
             <div class="text-xs font-semibold text-slate-500 mt-8 mb-2 px-4 uppercase flex justify-between items-center">
                 <span>Progetti Recenti</span>
             </div>
