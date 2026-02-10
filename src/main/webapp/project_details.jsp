@@ -10,17 +10,24 @@
 
     String idStr = request.getParameter("id");
     Project currentProject = null;
+    
+    // --- FIX 1: Dichiaro il controller QUI, visibile ovunque ---
+    ProjectController pc = new ProjectController(); 
+    
     if (idStr != null) {
-        ProjectController pc = new ProjectController();
         currentProject = pc.getProjectById(Integer.parseInt(idStr));
     }
     if (currentProject == null) { response.sendRedirect("dashboard.jsp"); return; }
 
+    // --- LOGICA STRATEGY ---
+    String sortParam = request.getParameter("sort");
+    List<Activity> sortedActivities = pc.getSortedActivities(currentProject.getId(), sortParam);
+    
     // Logica Kanban
     List<Activity> todoList = new ArrayList<>();
     List<Activity> doingList = new ArrayList<>();
     List<Activity> doneList = new ArrayList<>();
-    for(Activity a : currentProject.getActivities()) {
+    for(Activity a : sortedActivities) {
         if(a.getStatus() == ActivityStatus.DA_FARE) todoList.add(a);
         else if(a.getStatus() == ActivityStatus.IN_CORSO) doingList.add(a);
         else if(a.getStatus() == ActivityStatus.COMPLETATO) doneList.add(a);
@@ -53,12 +60,9 @@
         .task-card { cursor: grab; }
         .task-card:active { cursor: grabbing; }
         .subtask-check:hover { color: #10b981; cursor: pointer; }
-        
-        /* Stili Tabs */
         .tab-btn { border-bottom: 2px solid transparent; color: #64748b; padding-bottom: 12px; cursor: pointer; transition: all 0.2s; }
         .tab-btn:hover { color: #334155; }
         .tab-btn.active { border-bottom: 2px solid #0ea5e9; color: #0f172a; font-weight: 600; }
-        
         .tab-content { display: none; height: 100%; }
         .tab-content.active { display: block; }
     </style>
@@ -89,7 +93,6 @@
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
-
         </nav>
         <div class="p-4 border-t border-slate-800 flex items-center gap-3">
             <div class="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-xs"><%= user.getName().substring(0,2).toUpperCase() %></div>
@@ -137,8 +140,27 @@
             
             <div id="content-activities" class="tab-content w-full h-full <%= activeTab.equals("activities") ? "active" : "" %>">
                 <div class="overflow-x-auto h-full p-8">
-                    <div class="grid grid-cols-3 gap-6 h-full min-w-[1000px]">
+                    
+                    <div class="flex justify-end mb-4 gap-2 min-w-[1000px]">
+                        <span class="text-xs font-bold text-gray-400 uppercase self-center mr-2">Ordina per:</span>
                         
+                        <a href="project_details.jsp?id=<%= currentProject.getId() %>&sort=priority" 
+                           class="px-3 py-1 bg-white border border-gray-200 text-gray-600 rounded-full text-xs hover:bg-gray-50 hover:border-gray-400 transition <%= "priority".equals(sortParam) ? "bg-gray-100 border-gray-400 font-bold" : "" %>">
+                           <i class="fas fa-exclamation-circle text-red-400"></i> Priorità
+                        </a>
+                        
+                        <a href="project_details.jsp?id=<%= currentProject.getId() %>&sort=deadline" 
+                           class="px-3 py-1 bg-white border border-gray-200 text-gray-600 rounded-full text-xs hover:bg-gray-50 hover:border-gray-400 transition <%= "deadline".equals(sortParam) ? "bg-gray-100 border-gray-400 font-bold" : "" %>">
+                           <i class="far fa-clock text-blue-400"></i> Scadenza
+                        </a>
+                        
+                        <a href="project_details.jsp?id=<%= currentProject.getId() %>" 
+                           class="px-3 py-1 bg-white border border-gray-200 text-gray-400 rounded-full text-xs hover:bg-gray-50">
+                           Reset
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6 h-full min-w-[1000px]">
                         <div class="flex flex-col h-full kanban-column" data-status="DA_FARE">
                             <div class="flex items-center gap-2 mb-4">
                                 <div class="w-2 h-2 rounded-full bg-gray-400"></div>
@@ -379,7 +401,6 @@
             document.getElementById('uploadModal').classList.add('flex');
         }
 
-        // NUOVA FUNZIONE PER APRIRE LA MODALE INVITO
         function openInviteModal() {
             document.getElementById('inviteModal').classList.remove('hidden');
             document.getElementById('inviteModal').classList.add('flex');
@@ -438,7 +459,6 @@
         function closeModal() {
             document.getElementById('modalOverlay').classList.add('hidden');
             document.getElementById('modalOverlay').classList.remove('flex');
-            // Chiude anche la modale invito nel caso sia aperta quella
             document.getElementById('inviteModal').classList.add('hidden');
             document.getElementById('inviteModal').classList.remove('flex');
         }
@@ -447,7 +467,6 @@
             if (e.target === this) closeModal();
         });
         
-        // Per chiudere la modale invito cliccando fuori
         document.getElementById('inviteModal').addEventListener('click', function(e) {
             if (e.target === this) {
                  this.classList.add('hidden');

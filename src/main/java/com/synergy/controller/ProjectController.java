@@ -5,6 +5,7 @@ import com.synergy.util.DataManager;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class ProjectController {
 
@@ -243,6 +244,32 @@ public class ProjectController {
         dm.saveData();
         
         return true;
+    }
+    
+ // --- PATTERN STRATEGY ---
+    public List<Activity> getSortedActivities(int projectId, String sortType) {
+        Project p = getProjectById(projectId);
+        if (p == null) return new ArrayList<>();
+
+        // 1. Creo una COPIA della lista (per non modificare l'ordine salvato nel DB/File)
+        List<Activity> sortedList = new ArrayList<>(p.getActivities());
+
+        // 2. Scelgo la strategia (Context)
+        SortStrategy strategy;
+
+        if ("priority".equals(sortType)) {
+            strategy = new SortByPriority();
+        } else if ("deadline".equals(sortType)) {
+            strategy = new SortByDeadline();
+        } else {
+            // Default: nessun ordinamento particolare (ordine di creazione)
+            return sortedList;
+        }
+
+        // 3. Eseguo la strategia
+        strategy.sort(sortedList);
+
+        return sortedList;
     }
     
  // Metodo FILTRATO: Restituisce solo i progetti dell'utente

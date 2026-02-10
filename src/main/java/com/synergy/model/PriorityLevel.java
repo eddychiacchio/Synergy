@@ -1,7 +1,7 @@
 package com.synergy.model;
 
 public enum PriorityLevel {
-    ALTA,
+    BASSA,
     MEDIA,
-    BASSA
+    ALTA
 }
