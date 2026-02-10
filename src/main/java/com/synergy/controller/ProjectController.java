@@ -4,6 +4,7 @@ import com.synergy.model.*;
 import com.synergy.util.DataManager;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class ProjectController {
 
@@ -22,10 +23,6 @@ public class ProjectController {
         
         dm.getProjects().add(newProject);
         dm.saveData();
-    }
-    
-    public List<Project> getProjectsByUser(User user) {
-        return DataManager.getInstance().getProjects();
     }
     
     public Project getProjectById(int id) {
