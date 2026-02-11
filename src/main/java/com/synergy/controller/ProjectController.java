@@ -2,10 +2,12 @@ package com.synergy.controller;
 
 import com.synergy.model.*;
 import com.synergy.util.DataManager;
+import com.synergy.factory.ActivityFactory;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+
 
 public class ProjectController {
 
@@ -35,55 +37,34 @@ public class ProjectController {
         return null;
     }
     
-    // Metodo CREAZIONE
+ // Metodo CREAZIONE con FACTORY METHOD
     public void addActivityToProject(int projectId, String title, String priorityStr, String dateStr, String[] subTasks) {
         DataManager dm = DataManager.getInstance();
         Project p = getProjectById(projectId);
         
         if (p != null) {
-            int baseId = (int) (System.currentTimeMillis() & 0xfffffff);
+            // 1. Preparazione Dati (Il Controller gestisce solo il parsing HTTP/Input)
             PriorityLevel priority = PriorityLevel.valueOf(priorityStr);
             
-            LocalDate deadline;
+            LocalDate deadline = null;
             if (dateStr != null && !dateStr.isEmpty()) {
                 deadline = LocalDate.parse(dateStr);
             } else {
-                deadline = LocalDate.now().plusDays(7);
+                deadline = LocalDate.now().plusDays(7); // Default 1 settimana
             }
 
-            Activity newActivity;
-
-            // Logica Gruppo vs Singola
-            if (subTasks != null && subTasks.length > 0) {
-                boolean hasValidSubtasks = false;
-                for(String s : subTasks) if(s != null && !s.trim().isEmpty()) hasValidSubtasks = true;
-
-                if (hasValidSubtasks) {
-                    TaskGroup group = new TaskGroup(baseId, title, priority);
-                    group.setDeadline(deadline); 
-
-                    int i = 1;
-                    for (String subTitle : subTasks) {
-                        if (subTitle != null && !subTitle.trim().isEmpty()) {
-                            int subId = baseId + i + (int)(Math.random() * 1000); 
-                            SingleTask subTask = new SingleTask(subId, subTitle, priority);
-                            subTask.setDeadline(deadline); 
-                            group.addActivity(subTask);
-                            i++;
-                        }
-                    }
-                    newActivity = group;
-                } else {
-                    newActivity = new SingleTask(baseId, title, priority);
-                    newActivity.setDeadline(deadline);
-                }
-            } else {
-                newActivity = new SingleTask(baseId, title, priority);
-                newActivity.setDeadline(deadline);
-            }
+            // 2. USO DEL FACTORY METHOD
+            // Il Controller delega TUTTA la logica di creazione alla Factory.
+            // Non sa se sta ricevendo un SingleTask o un TaskGroup, e non gli interessa.
+            Activity newActivity = ActivityFactory.createActivity(title, priority, deadline, subTasks);
             
+            // 3. Aggiungo al progetto
             p.getActivities().add(newActivity);
-            p.notifyObservers("Notifica attività aggiunta: " + title);
+            
+            // 4. Notifico gli Observer (Utenti) - Pattern Observer
+            p.notifyObservers("Nuova attività aggiunta: " + title);
+            
+            // 5. Salvo
             dm.saveData();
         }
     }
